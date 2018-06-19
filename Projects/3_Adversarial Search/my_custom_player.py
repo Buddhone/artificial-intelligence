@@ -45,5 +45,83 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        import random
-        self.queue.put(random.choice(state.actions()))
+        action = self.alpha_beta(state, 1)
+            
+        last_action = action
+        i = 2
+        while (i < 3 and action is not None):
+            
+            action = self.alpha_beta(state,i)
+            last_action = action
+            i = i+1
+        self.queue.put(last_action)        
+       
+    def minimax_decision(self, state, depth):
+        
+        
+        best_score = float("-inf")
+        best_move = None
+        for a in state.actions():
+            v = self.min_value(state.result(a), depth - 1)
+            if v > best_score:
+                best_score = v
+                best_move = a
+        return best_move
+    
+    def alpha_beta(self, state, depth):
+        alpha =float("-inf")
+        beta = float("inf")
+        best_score = float("-inf")
+        best_move = None
+        for a in state.actions():
+            v = self.min_value(state.result(a), best_score, beta, depth - 1)
+            if v > best_score:
+                best_score = v
+                best_move = a
+    
+        return best_move
+        
+        
+        
+    
+    def min_value(self, state, alpha, beta, depth):
+        
+        if depth <= 0:
+            return self.score(state)
+        
+        if state.terminal_test():
+            return state.utility(self.player_id)
+
+        v = float("inf")
+        for a in state.actions():
+            v = min(v, self.max_value(state.result(a), alpha, beta, depth-1))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+            
+        return v
+
+    def max_value(self, state, alpha, beta, depth):
+        if depth <= 0:
+            return self.score(state)
+        
+        if state.terminal_test():
+            return state.utility(self.player_id)
+        
+    
+        v = float("-inf")
+        for a in state.actions():
+            v = max(v, self.min_value(state.result(a), alpha, beta, depth-1))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+            
+        return v
+  
+    def score(self, state):
+        # # own moves - opponent moves heuristic
+        own_loc = state.locs[self.player_id]
+        opp_loc = state.locs[1 - self.player_id]
+        own_liberties = state.liberties(own_loc)
+        opp_liberties = state.liberties(opp_loc)
+        return len(own_liberties) - len(opp_liberties)
