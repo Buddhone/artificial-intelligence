@@ -45,16 +45,12 @@ class CustomPlayer(DataPlayer):
         # EXAMPLE: choose a random move without any search--this function MUST
         #          call self.queue.put(ACTION) at least once before time expires
         #          (the timer is automatically managed for you)
-        action = self.alpha_beta(state, 1)
-            
-        last_action = action
-        i = 2
-        while (i < 3 and action is not None):
-            
-            action = self.alpha_beta(state,i)
-            last_action = action
-            i = i+1
-        self.queue.put(last_action)        
+        depth_limit = 10
+
+        for depth in range(1, depth_limit + 1):
+            action = self.alpha_beta(state, depth)
+            if action is not None:
+                self.queue.put(action)        
        
     def minimax_decision(self, state, depth):
         
